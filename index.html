@@ -3,232 +3,531 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Poznej svůj počítač | Interaktivní prezentace</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <title>Svět Peněz a Investic</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
-        .slide { transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out; }
-        .slide-hidden { opacity: 0; transform: translateY(20px); pointer-events: none; position: absolute; top: 0; left: 0; right: 0; }
-        .slide-active { opacity: 1; transform: translateY(0); position: relative; z-index: 10; }
+        /* 1. ZÁKLADNÍ NASTAVENÍ */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #020617;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+            font-family: 'Urbanist', sans-serif;
+            color: #e2e8f0;
+        }
+
+        /* Ovládací prvky na plátně */
+        .pres-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 30px;
+            color: #64748b;
+            font-size: 16px;
+            z-index: 100;
+        }
+        .pres-counter {
+            position: absolute;
+            bottom: 20px;
+            right: 30px;
+            color: #64748b;
+            font-size: 16px;
+            z-index: 100;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* 2. KONTEJNER PRO SLAJDY */
+        .slide-container {
+            display: none;
+            align-items: flex-start;
+            background-color: #0f172a;
+            border-radius: 16px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), inset 0 0 0 1px rgba(255,255,255,0.05);
+            flex-direction: column;
+            height: 720px;
+            justify-content: flex-start;
+            overflow: hidden;
+            padding: 60px;
+            position: relative;
+            width: 1280px;
+        }
+
+        .slide-container.active {
+            display: flex;
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* 3. DEKORACE (Barevné fleky na pozadí slajdů) */
+        .bg-blob-1 {
+            position: absolute;
+            top: -200px;
+            left: -150px;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.12) 0%, transparent 60%);
+            border-radius: 50%;
+            z-index: 0;
+        }
+        .bg-blob-2 {
+            position: absolute;
+            bottom: -200px;
+            right: -150px;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.12) 0%, transparent 60%);
+            border-radius: 50%;
+            z-index: 0;
+        }
+        
+        .slide-container > *:not(.bg-blob-1):not(.bg-blob-2) {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 4. TYPOGRAFIE */
+        .slide-container h1,
+        .slide-container h2,
+        .slide-container h3 {
+            color: #f8fafc;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .slide-container h1 span,
+        .slide-container h2 span {
+            color: #10b981;
+        }
+
+        .slide-container p,
+        .slide-container .subtitle,
+        .slide-container li {
+            color: #cbd5e1;
+            font-weight: 400;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .slide-container h1 { font-size: 70px; line-height: 1.1; }
+        .slide-container .slide-title { font-size: 50px; margin-bottom: 40px; width: 100%; text-align: left; }
+        .slide-container h3 { font-size: 28px; margin-bottom: 15px; }
+        .slide-container p, .slide-container li { font-size: 22px; }
+        .slide-container .subtitle { font-size: 24px; color: #94a3b8; margin-top: 20px; }
+
+        .content-area {
+            align-items: flex-start;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            width: 100%;
+        }
+
+        /* 5. ROZVRŽENÍ (LAYOUTY) */
+        
+        /* Odrážky */
+        ul { list-style: none; padding: 0; margin: 0; width: 100%; }
+        .content-container li { margin-bottom: 25px; position: relative; padding-left: 45px; }
+        .content-container li::before {
+            content: '\f0da';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            color: #10b981;
+            position: absolute;
+            left: 0;
+            font-size: 30px;
+            top: -4px;
+        }
+
+        /* Dva sloupce */
+        .two-column {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 60px;
+            width: 100%;
+            align-items: center;
+        }
+
+        /* Box pro ilustrační ikony */
+        .icon-wrapper {
+            border-radius: 16px;
+            height: 400px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #334155;
+            background-color: #020617;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            font-size: 150px;
+        }
+
+        /* Titulní slajd */
+        .title-layout { align-items: center; justify-content: center; text-align: center; height: 100%; }
+
+        /* Nadpis sekce */
+        .section-title-layout {
+            align-items: center; display: flex; flex-direction: column; height: 100%;
+            justify-content: center; text-align: center; width: 100%;
+        }
+        .section-title-layout h2 { font-size: 65px; margin-bottom: 20px; }
+        .section-title-layout p { font-size: 28px; color: #94a3b8; }
+        .section-title-layout hr {
+            background-color: #10b981; border: none; height: 6px; margin: 40px auto;
+            width: 120px; border-radius: 3px;
+        }
+
+        /* Tři boxy vedle sebe */
+        .tiled-content {
+            align-items: stretch; display: flex; gap: 40px; justify-content: center; width: 100%;
+        }
+        .tiled-content .tile {
+            background-color: #1e293b; border-radius: 16px; border: 1px solid #334155;
+            display: flex; flex-direction: column; flex: 1; padding: 40px 30px; text-align: center;
+        }
+        .tiled-content .tile .icon { color: #10b981; font-size: 50px; margin-bottom: 25px; }
+
+        /* Zvýrazněná čísla */
+        .highlight-numbers-layout > div:first-child { flex: 0 0 40%; text-align: center; }
+        .highlight-numbers-layout .number {
+            color: #ef4444; font-size: 160px; font-weight: 900; line-height: 1;
+            text-shadow: 0 10px 30px rgba(239, 68, 68, 0.2);
+        }
+        .highlight-numbers-layout .number-label { font-size: 30px; font-weight: 700; color: #f8fafc; margin-top: 10px; }
+
+        /* Dva sloupce s boxy (Pro a proti) */
+        .two-column.tiled { align-items: stretch; }
+        .two-column.tiled > div {
+            background-color: #1e293b; border-radius: 16px; border: 1px solid #334155; padding: 50px 40px;
+        }
+        .two-column.tiled h3 { color: #10b981; text-align: center; margin-bottom: 30px; font-size: 36px; }
+        .two-column.tiled .negative h3 { color: #ef4444; }
+        .two-column.tiled li { padding-left: 35px; margin-bottom: 20px; }
+        .two-column.tiled li::before { content: '\f00c'; font-family: 'Font Awesome 6 Free'; font-weight: 900; color: #10b981; position: absolute; left: 0; }
+        .two-column.tiled .negative li::before { content: '\f00d'; color: #ef4444; }
+
+        /* Tři ikony (Scam/Rugpull) */
+        .tiled-images-layout .image-tile {
+            flex: 1; text-align: center; background-color: #1e293b; border-radius: 16px;
+            border: 1px solid #334155; padding: 35px 25px;
+        }
+        .tiled-images-layout .image-tile i { font-size: 80px; margin-bottom: 30px; display: block; }
+
+        /* Tabulka srovnání */
+        .table-layout { width: 100%; background-color: #1e293b; border-radius: 16px; border: 1px solid #334155; overflow: hidden; }
+        .table-layout table { border-collapse: collapse; width: 100%; }
+        .table-layout th, .table-layout td { border-bottom: 1px solid #334155; padding: 22px 30px; text-align: left; font-size: 22px; }
+        .table-layout th { background-color: rgba(0,0,0,0.2); color: #10b981; font-size: 24px; }
+        .table-layout tr:last-child td { border-bottom: none; }
+        .text-green { color: #10b981 !important; font-weight: 700; }
+        .text-red { color: #ef4444 !important; font-weight: 700; }
+        .text-yellow { color: #f59e0b !important; font-weight: 700; }
+
+        /* Závěr */
+        .qa-layout { margin: 0 auto; text-align: center; width: 100%; align-self: center; }
+        .qa-layout h2 { font-size: 100px; margin-bottom: 30px; }
+        .qa-layout p { font-size: 32px; color: #10b981; font-weight: 700; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col text-slate-800 overflow-hidden">
+<body>
 
-    <!-- Progress Bar -->
-    <div class="h-2 w-full bg-slate-200 fixed top-0 z-50">
-        <div id="progress-bar" class="h-full bg-blue-600 transition-all duration-300 w-0"></div>
+    <!-- Globální ovládací prvky -->
+    <div class="pres-controls"><i class="fas fa-keyboard mr-2"></i> Klávesy ⬅ ➡ pro posun</div>
+    <div id="slide-counter" class="pres-counter"></div>
+
+    <!-- Slajd 1: Titulní -->
+    <div class="slide-container" id="slide1">
+        <div class="bg-blob-1"></div><div class="bg-blob-2"></div>
+        <div class="content-area title-layout">
+            <h1>Svět <span>Peněz</span> a <span>Investic</span></h1>
+            <p class="subtitle">Finanční gramotnost & ochrana majetku pro 21. století.</p>
+        </div>
     </div>
 
-    <!-- Main Content Container -->
-    <main class="flex-grow flex items-center justify-center p-6 sm:p-12 relative w-full max-w-5xl mx-auto h-[80vh] mt-10">
-        
-        <!-- SLIDE 1: Úvod -->
-        <div class="slide slide-active bg-white rounded-2xl shadow-xl p-8 sm:p-12 w-full text-center border-t-4 border-blue-500">
-            <i class="fas fa-desktop text-6xl text-blue-500 mb-6"></i>
-            <h1 class="text-4xl sm:text-5xl font-extrabold mb-4 text-slate-900">Poznej svůj počítač</h1>
-            <p class="text-xl text-slate-600 mb-8">Základní průvodce hardwarem a systémem pro začínající profíky.</p>
-            <p class="text-sm text-slate-400">Použijte šipky na klávesnici nebo tlačítka dole pro navigaci.</p>
-        </div>
-
-        <!-- SLIDE 2: CPU, GPU, RAM -->
-        <div class="slide slide-hidden bg-white rounded-2xl shadow-xl p-8 sm:p-12 w-full border-t-4 border-green-500">
-            <h2 class="text-3xl font-bold mb-6 flex items-center"><i class="fas fa-microchip text-green-500 mr-4"></i>Srdce a mozek počítače</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-slate-50 p-6 rounded-xl border border-slate-100">
-                    <h3 class="font-bold text-xl mb-2">Procesor (CPU)</h3>
-                    <p class="text-slate-600 text-sm">Mozek počítače. Provádí veškeré výpočty. Čím lepší, tím rychleji počítač "přemýšlí". (např. Intel Core i5, AMD Ryzen 5)</p>
+    <!-- Slajd 2: Jak funguje banka -->
+    <div class="slide-container" id="slide2">
+        <div class="bg-blob-1"></div><div class="bg-blob-2"></div>
+        <h2 class="slide-title">Jak banka <span>"točí"</span> peníze</h2>
+        <div class="content-area">
+            <div class="tiled-content">
+                <div class="tile">
+                    <div class="icon"><i class="fas fa-piggy-bank"></i></div>
+                    <h3>1. Váš Vklad</h3>
+                    <p>Uložíte peníze na spořicí účet. Získáte úrok cca 3 % p.a. Peníze jsou sice v bezpečí, ale pomalu ztrácí kupní sílu.</p>
                 </div>
-                <div class="bg-slate-50 p-6 rounded-xl border border-slate-100">
-                    <h3 class="font-bold text-xl mb-2">Grafická karta (GPU)</h3>
-                    <p class="text-slate-600 text-sm">Malíř. Stará se o to, co vidíš na monitoru. Důležitá pro hry, střih videa a 3D grafiku.</p>
+                <div class="tile">
+                    <div class="icon"><i class="fas fa-hand-holding-dollar"></i></div>
+                    <h3>2. Banka Půjčuje</h3>
+                    <p>Banka nezamkne peníze do trezoru. Půjčí je firmě nebo na hypotéku jinému klientovi s úrokem 6 % p.a.</p>
                 </div>
-                <div class="bg-slate-50 p-6 rounded-xl border border-slate-100">
-                    <h3 class="font-bold text-xl mb-2">Paměť (RAM)</h3>
-                    <p class="text-slate-600 text-sm">Krátkodobá paměť (pracovní stůl). Čím více RAM, tím více programů můžeš mít otevřených najednou bez sekání (např. 16 GB).</p>
+                <div class="tile">
+                    <div class="icon"><i class="fas fa-building-columns"></i></div>
+                    <h3>3. Čistý Zisk</h3>
+                    <p>Banka vydělává na úrokovém rozdílu (tzv. marži). Zhodnocuje vaše peníze prakticky bez vlastního rizika.</p>
                 </div>
             </div>
-            <div class="mt-8 bg-blue-50 text-blue-800 p-4 rounded-lg flex items-start">
-                <i class="fas fa-lightbulb mt-1 mr-3"></i>
-                <p><strong>Jak to zjistit?</strong> Stiskni <code>Ctrl + Shift + Esc</code> (Správce úloh) a klikni na záložku <strong>Výkon</strong>.</p>
-            </div>
         </div>
+    </div>
 
-        <!-- SLIDE 3: OS a Disky -->
-        <div class="slide slide-hidden bg-white rounded-2xl shadow-xl p-8 sm:p-12 w-full border-t-4 border-purple-500">
-            <h2 class="text-3xl font-bold mb-6 flex items-center"><i class="fas fa-hdd text-purple-500 mr-4"></i>Systém a Úložiště</h2>
-            <div class="space-y-6">
+    <!-- Slajd 3: Inflace -->
+    <div class="slide-container" id="slide3">
+        <div class="bg-blob-1"></div><div class="bg-blob-2"></div>
+        <h2 class="slide-title">Nepřítel pod <span>polštářem</span></h2>
+        <div class="content-area">
+            <div class="two-column highlight-numbers-layout">
                 <div>
-                    <h3 class="text-xl font-bold flex items-center"><i class="fab fa-windows text-blue-500 mr-2"></i> Operační systém (OS)</h3>
-                    <p class="text-slate-600 mt-2">Základní software, který oživuje železo (hardware). Nejčastěji Windows 10 nebo 11. <br>
-                    <span class="text-sm bg-slate-100 px-2 py-1 rounded inline-block mt-2">💡 <strong>Jak zjistit verzi:</strong> Stiskni klávesu <code>Windows + R</code>, napiš <code>winver</code> a dej Enter.</span></p>
+                    <div class="number">-30%</div>
+                    <div class="number-label">Ztráta kupní síly</div>
                 </div>
-                <div class="border-t border-slate-200 pt-6">
-                    <h3 class="text-xl font-bold">Disky (Kde jsou uložená data natrvalo)</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                        <div class="bg-slate-50 p-4 rounded-lg border-l-4 border-slate-400">
-                            <strong>HDD (Pevný disk)</strong><br>
-                            <span class="text-sm text-slate-600">Starší technologie. Uvnitř se točí magnetické plotny. Je levnější, má velkou kapacitu, ale je <strong>pomalý</strong> a náchylný na otřesy.</span>
-                        </div>
-                        <div class="bg-slate-50 p-4 rounded-lg border-l-4 border-purple-500 shadow-sm">
-                            <strong>SSD (Solid State Drive)</strong><br>
-                            <span class="text-sm text-slate-600">Moderní flash paměť. Žádné pohyblivé části. Je <strong>extrémně rychlý</strong>, systém díky němu naběhne za pár vteřin. Dnes už nutnost!</span>
-                        </div>
+                <div class="content-container">
+                    <ul>
+                        <li>Peníze ležící ladem na účtu požírá inflace.</li>
+                        <li>Co stálo dříve 1 000 Kč, je dnes mnohem dražší.</li>
+                        <li>Běžné spořicí účty inflaci dlouhodobě neporazí.</li>
+                        <li>Neinvestovat znamená dobrovolně chudnout.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slajd 4: Složené úročení -->
+    <div class="slide-container" id="slide4">
+        <div class="bg-blob-1"></div><div class="bg-blob-2"></div>
+        <h2 class="slide-title">Osmý <span>div</span> světa</h2>
+        <div class="content-area">
+            <div class="two-column">
+                <div class="content-container">
+                    <ul>
+                        <li><strong>Složené úročení:</strong> Úroky se počítají i z předchozích úroků.</li>
+                        <li>Vzniká efekt sněhové koule: čím déle se valí, tím nabaluje více sněhu.</li>
+                        <li>Při investování je nejdůležitější faktor <strong>čas</strong>.</li>
+                        <li>Začít investovat v mládí po stokorunách je lepší, než ve 40 letech po tisících.</li>
+                    </ul>
+                </div>
+                <div>
+                    <div class="icon-wrapper">
+                        <i class="fas fa-chart-pie text-emerald-500"></i>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- SLIDE 4: Adresářové cesty -->
-        <div class="slide slide-hidden bg-white rounded-2xl shadow-xl p-8 sm:p-12 w-full border-t-4 border-yellow-500">
-            <h2 class="text-3xl font-bold mb-6 flex items-center"><i class="fas fa-folder-open text-yellow-500 mr-4"></i>Kde bydlí programy?</h2>
-            <p class="text-lg text-slate-700 mb-4">Počítač je jako obrovská knihovna. Aby něco našel, potřebuje přesnou adresu. Tomu říkáme <strong>adresářová cesta</strong>.</p>
-            
-            <div class="bg-slate-900 text-green-400 font-mono p-4 rounded-lg text-sm sm:text-base break-all mt-6 shadow-inner">
-                C:\Program Files (x86)\Google\Chrome\Application\chrome.exe
-            </div>
-            
-            <ul class="mt-6 space-y-3 text-slate-600">
-                <li><i class="fas fa-hdd text-slate-400 mr-2"></i> <strong>C:\</strong> - Hlavní disk (Kořenový adresář).</li>
-                <li><i class="fas fa-folder text-yellow-400 mr-2"></i> <strong>Program Files...</strong> - Složka, kam se standardně instalují programy.</li>
-                <li><i class="fas fa-file-code text-blue-400 mr-2"></i> <strong>chrome.exe</strong> - Samotný spustitelný soubor prohlížeče (executable).</li>
-            </ul>
-        </div>
-
-        <!-- SLIDE 5: Fonty -->
-        <div class="slide slide-hidden bg-white rounded-2xl shadow-xl p-8 sm:p-12 w-full border-t-4 border-pink-500">
-            <h2 class="text-3xl font-bold mb-6 flex items-center"><i class="fas fa-font text-pink-500 mr-4"></i>Instalace nového písma (Fontu)</h2>
-            <p class="text-slate-700 mb-6">Děláš plakát nebo prezentaci a nestačí ti Arial či Times New Roman? Můžeš si nainstalovat vlastní!</p>
-            
-            <div class="grid md:grid-cols-2 gap-8">
-                <div>
-                    <h3 class="font-bold text-lg mb-2">1. Formáty fontů</h3>
-                    <ul class="list-disc list-inside text-slate-600 space-y-2">
-                        <li><strong>.TTF</strong> (TrueType Font) - starší, nejběžnější.</li>
-                        <li><strong>.OTF</strong> (OpenType Font) - novější, podporuje pokročilejší typografii (ligatury atd.).</li>
+    <!-- Slajd 5: S&P 500 -->
+    <div class="slide-container" id="slide5">
+        <div class="bg-blob-1"></div><div class="bg-blob-2"></div>
+        <h2 class="slide-title">Kam poslat <span>peníze</span> pracovat?</h2>
+        <div class="content-area">
+            <div class="two-column">
+                <div class="content-container">
+                    <ul>
+                        <li><strong>Index S&P 500:</strong> Koš 500 největších firem v USA (Apple, Google, Microsoft).</li>
+                        <li>Nekupujete "jehlu v kupce sena", kupujete rovnou celou kupku.</li>
+                        <li>Dlouhodobý historický výnos: <strong>8–10 % ročně</strong>.</li>
+                        <li>Zkrachuje-li jedna firma, automaticky ji v indexu nahradí jiná.</li>
                     </ul>
-                    <p class="text-sm text-slate-500 mt-4">Kde stahovat? Např. <em>fonts.google.com</em> nebo <em>dafont.com</em>.</p>
                 </div>
-                <div class="bg-pink-50 p-6 rounded-xl">
-                    <h3 class="font-bold text-lg mb-2 text-pink-800">2. Jak na instalaci?</h3>
-                    <ol class="list-decimal list-inside text-pink-900 space-y-3 text-sm">
-                        <li>Stáhni si font (většinou se stáhne v .zip archivu).</li>
-                        <li>Archiv rozbal (Pravé tlačítko -> Extrahovat vše).</li>
-                        <li>Dvakrát klikni na soubor .ttf nebo .otf.</li>
-                        <li>Otevře se okno s ukázkou. Klikni na tlačítko <strong>Instalovat</strong> nahoře.</li>
-                        <li>Hotovo! Restartuj Word a písmo tam bude.</li>
-                    </ol>
+                <div>
+                    <div class="icon-wrapper">
+                        <i class="fas fa-arrow-trend-up text-blue-500"></i>
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- SLIDE 6: Výchozí programy -->
-        <div class="slide slide-hidden bg-white rounded-2xl shadow-xl p-8 sm:p-12 w-full border-t-4 border-orange-500">
-            <h2 class="text-3xl font-bold mb-6 flex items-center"><i class="fas fa-play-circle text-orange-500 mr-4"></i>Kdo mi otevře video?</h2>
-            <p class="text-slate-700 mb-6">Dvojklikneš na film (.mp4) a otevře se v programu, který ti nevyhovuje? Změň <strong>výchozí aplikaci</strong>!</p>
-            
-            <div class="space-y-4">
-                <div class="bg-white border border-slate-200 p-4 rounded-lg flex items-center shadow-sm">
-                    <div class="bg-orange-100 text-orange-600 rounded-full w-10 h-10 flex items-center justify-center font-bold mr-4 shrink-0">1</div>
-                    <p class="text-slate-700">Klikni na menu <strong>Start</strong> (ikona Windows) a otevři <strong>Nastavení</strong> (ozubené kolo).</p>
+    <!-- Slajd 6: Nemovitosti -->
+    <div class="slide-container" id="slide6">
+        <div class="bg-blob-1"></div><div class="bg-blob-2"></div>
+        <h2 class="slide-title">Cihla a <span>Malta</span> (Nemovitosti)</h2>
+        <div class="content-area">
+            <div class="two-column tiled">
+                <div>
+                    <h3>Výhody</h3>
+                    <ul>
+                        <li>Hmatatelné, fyzické aktivum.</li>
+                        <li>Pasivní příjem z nájmu (Cashflow).</li>
+                        <li>Růst hodnoty v čase (Ochrana před inflací).</li>
+                        <li>Lze financovat penězi banky (Hypotéka).</li>
+                    </ul>
                 </div>
-                <div class="bg-white border border-slate-200 p-4 rounded-lg flex items-center shadow-sm">
-                    <div class="bg-orange-100 text-orange-600 rounded-full w-10 h-10 flex items-center justify-center font-bold mr-4 shrink-0">2</div>
-                    <p class="text-slate-700">Přejdi do sekce <strong>Aplikace</strong> a vlevo vyber <strong>Výchozí aplikace</strong>.</p>
-                </div>
-                <div class="bg-white border border-slate-200 p-4 rounded-lg flex items-center shadow-sm">
-                    <div class="bg-orange-100 text-orange-600 rounded-full w-10 h-10 flex items-center justify-center font-bold mr-4 shrink-0">3</div>
-                    <p class="text-slate-700">Najdi položku <strong>Přehrávač videa</strong> (nebo Film a TV pořady) a klikni na ni.</p>
-                </div>
-                <div class="bg-white border border-slate-200 p-4 rounded-lg flex items-center shadow-sm">
-                    <div class="bg-orange-100 text-orange-600 rounded-full w-10 h-10 flex items-center justify-center font-bold mr-4 shrink-0">4</div>
-                    <p class="text-slate-700">Vyber ze seznamu jiný program (např. oblíbený <em>VLC media player</em>).</p>
+                <div class="negative">
+                    <h3>Nevýhody</h3>
+                    <ul>
+                        <li>Nutný velký počáteční kapitál (Základ na hypo).</li>
+                        <li>Starosti s hledáním spolehlivých nájemníků.</li>
+                        <li>Skryté náklady (daně, opravy, pojištění).</li>
+                        <li>Nízká likvidita (nelze prodat přes noc).</li>
+                    </ul>
                 </div>
             </div>
-            
-            <p class="text-sm text-slate-500 mt-6 text-center">Alternativa: Pravé tlačítko na soubor -> Otevřít v programu -> Zvolit jinou aplikaci -> Zaškrtnout "Vždy používat...".</p>
         </div>
+    </div>
 
-    </main>
-
-    <!-- Controls -->
-    <footer class="p-6 flex justify-between items-center max-w-5xl mx-auto w-full">
-        <button id="btn-prev" class="px-6 py-3 bg-white border border-slate-300 text-slate-600 font-semibold rounded-lg shadow-sm hover:bg-slate-50 hover:text-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center">
-            <i class="fas fa-arrow-left mr-2"></i> Předchozí
-        </button>
-        
-        <div id="slide-counter" class="text-slate-500 font-medium">
-            1 / 6
+    <!-- Slajd 7: Varování před podvody -->
+    <div class="slide-container" id="slide7">
+        <div class="bg-blob-1"></div><div class="bg-blob-2" style="background: radial-gradient(circle, rgba(239, 68, 68, 0.15) 0%, transparent 60%);"></div>
+        <div class="section-title-layout">
+            <hr style="background-color: #ef4444;">
+            <h2 style="color: #ef4444;">Podvody & Scamy</h2>
+            <p>Jak nepřijít o všechno na vidině rychlého zbohatnutí.</p>
         </div>
+    </div>
 
-        <button id="btn-next" class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors flex items-center">
-            Další <i class="fas fa-arrow-right ml-2"></i>
-        </button>
-    </footer>
+    <!-- Slajd 8: Fake Gurus -->
+    <div class="slide-container" id="slide8">
+        <div class="bg-blob-1"></div><div class="bg-blob-2"></div>
+        <h2 class="slide-title">"Kup si můj <span>VIP</span> kurz!"</h2>
+        <div class="content-area">
+            <div class="two-column">
+                <div class="content-container">
+                    <ul>
+                        <li>Influenceři fotící se u pronajatých aut a cizích vil.</li>
+                        <li>Slibují nereálné zhodnocení (stovky procent měsíčně).</li>
+                        <li>Jejich byznys není trading, ale <strong>prodej kurzů</strong>.</li>
+                        <li>Pravidlo: Pokud by uměli dělat 500 % ročně, nepotřebují prodávat kurzy za 2 tisíce.</li>
+                    </ul>
+                </div>
+                <div>
+                    <div class="icon-wrapper border-red-900/50">
+                        <i class="fas fa-user-secret text-red-500"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <!-- Slajd 9: Rug Pull -->
+    <div class="slide-container" id="slide9">
+        <div class="bg-blob-1"></div><div class="bg-blob-2"></div>
+        <h2 class="slide-title">Krypto Podvod <span>(Rug Pull)</span></h2>
+        <div class="content-area">
+            <div class="tiled-content tiled-images-layout">
+                <div class="image-tile border-red-900/50">
+                    <i class="fas fa-rocket text-blue-500"></i>
+                    <h3>1. Hype & FOMO</h3>
+                    <p>Zaplatí se reklama, slibuje se raketový růst. Běžní lidé ve strachu, že jim uteče zisk, masivně nakupují.</p>
+                </div>
+                <div class="image-tile border-red-900/50">
+                    <i class="fas fa-arrow-trend-down text-red-500"></i>
+                    <h3 style="color: #ef4444;">2. Crash</h3>
+                    <p>Jakmile cena vyletí, tvůrci potají začnou prodávat všechny své mince. Cena prudce padá na nulu.</p>
+                </div>
+                <div class="image-tile border-red-900/50">
+                    <i class="fas fa-ghost text-slate-500"></i>
+                    <h3 style="color: #ef4444;">3. Exit</h3>
+                    <p>Tvůrci "vytrhnou koberec", zruší web i sítě a zmizí s penězi investorů. Projekt je mrtvý.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slajd 10: Tabulka shrnutí -->
+    <div class="slide-container" id="slide10">
+        <div class="bg-blob-1"></div><div class="bg-blob-2"></div>
+        <h2 class="slide-title">Rychlé <span>Srovnání</span></h2>
+        <div class="content-area">
+            <div class="table-layout">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Aktivum</th>
+                            <th>Historický Výnos</th>
+                            <th>Riziko</th>
+                            <th>Vaše zapojení</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Spořicí účet</td>
+                            <td>0 – 4 % p.a.</td>
+                            <td class="text-green">Extrémně nízké</td>
+                            <td>Žádné (Pasivní)</td>
+                        </tr>
+                        <tr>
+                            <td>S&P 500 (ETF)</td>
+                            <td>8 – 10 % p.a.</td>
+                            <td class="text-yellow">Střední (kolísá)</td>
+                            <td>Nízké (Pasivní)</td>
+                        </tr>
+                        <tr>
+                            <td>Nemovitosti</td>
+                            <td>4 % + růst ceny</td>
+                            <td class="text-green">Nízké</td>
+                            <td class="text-red">Vysoké (Aktivní)</td>
+                        </tr>
+                        <tr>
+                            <td>Kryptoměny (Neznámé)</td>
+                            <td>+1000 % / -100 %</td>
+                            <td class="text-red">Extrémní</td>
+                            <td class="text-yellow">Střední</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slajd 11: Závěr a Q&A -->
+    <div class="slide-container" id="slide11">
+        <div class="bg-blob-1"></div><div class="bg-blob-2"></div>
+        <div class="content-area qa-layout">
+            <h2><span>Otázky?</span></h2>
+            <p>Zlaté pravidlo: "Investujte jen do toho, čemu stoprocentně rozumíte."</p>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT PRO PŘEPÍNÁNÍ SLAJDŮ -->
     <script>
-        const slides = document.querySelectorAll('.slide');
-        const btnPrev = document.getElementById('btn-prev');
-        const btnNext = document.getElementById('btn-next');
-        const counter = document.getElementById('slide-counter');
-        const progressBar = document.getElementById('progress-bar');
-        
-        let currentSlide = 0;
+        document.addEventListener('DOMContentLoaded', () => {
+            const slides = document.querySelectorAll('.slide-container');
+            const counter = document.getElementById('slide-counter');
+            let currentSlide = 0;
 
-        function updateSlides() {
-            slides.forEach((slide, index) => {
-                if (index === currentSlide) {
-                    slide.classList.remove('slide-hidden');
-                    slide.classList.add('slide-active');
-                } else {
-                    slide.classList.remove('slide-active');
-                    slide.classList.add('slide-hidden');
+            function showSlide(index) {
+                slides.forEach((slide, i) => {
+                    if (i === index) {
+                        slide.classList.add('active');
+                    } else {
+                        slide.classList.remove('active');
+                    }
+                });
+                
+                if(counter) {
+                    counter.textContent = (index + 1) + " / " + slides.length;
+                }
+            }
+
+            // Zachytávání šipek na klávesnici
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') {
+                    currentSlide = Math.min(currentSlide + 1, slides.length - 1);
+                    showSlide(currentSlide);
+                } else if (e.key === 'ArrowLeft') {
+                    currentSlide = Math.max(currentSlide - 1, 0);
+                    showSlide(currentSlide);
                 }
             });
 
-            // Update buttons
-            btnPrev.disabled = currentSlide === 0;
-            if(currentSlide === slides.length - 1) {
-                btnNext.innerHTML = 'Konec <i class="fas fa-check ml-2"></i>';
-                btnNext.classList.replace('bg-blue-600', 'bg-green-600');
-                btnNext.classList.replace('hover:bg-blue-700', 'hover:bg-green-700');
-            } else {
-                btnNext.innerHTML = 'Další <i class="fas fa-arrow-right ml-2"></i>';
-                btnNext.classList.replace('bg-green-600', 'bg-blue-600');
-                btnNext.classList.replace('hover:bg-green-700', 'hover:bg-blue-700');
-            }
-
-            // Update counter and progress bar
-            counter.innerText = `${currentSlide + 1} / ${slides.length}`;
-            progressBar.style.width = `${((currentSlide + 1) / slides.length) * 100}%`;
-        }
-
-        btnNext.addEventListener('click', () => {
-            if (currentSlide < slides.length - 1) {
-                currentSlide++;
-                updateSlides();
-            }
+            // Inicializace prvního slajdu po načtení stránky
+            showSlide(currentSlide);
         });
-
-        btnPrev.addEventListener('click', () => {
-            if (currentSlide > 0) {
-                currentSlide--;
-                updateSlides();
-            }
-        });
-
-        // Keyboard navigation
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowRight' || e.key === 'Space') {
-                if (currentSlide < slides.length - 1) { currentSlide++; updateSlides(); }
-            } else if (e.key === 'ArrowLeft') {
-                if (currentSlide > 0) { currentSlide--; updateSlides(); }
-            }
-        });
-
-        // Initialize
-        updateSlides();
     </script>
+
 </body>
 </html>
